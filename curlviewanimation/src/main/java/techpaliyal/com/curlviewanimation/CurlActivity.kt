@@ -28,7 +28,7 @@ import java.util.*
 class CurlActivity(var act : Activity) {
     // ScrollPickerView scrollPickerView;
     private var mCurlView: CurlView? = null
-    var mBitmapIds = ArrayList<Int>()
+    var mBitmapIds = ArrayList<Drawable>()
     internal var slideButton: Button? = null
     private val scrolling = false
 
@@ -40,7 +40,7 @@ class CurlActivity(var act : Activity) {
 
 
 
-    fun load(curl : CurlView,mBitmapIds:ArrayList<Int>){
+    fun load(curl : CurlView,mBitmapIds:ArrayList<Drawable>){
         this.mBitmapIds=mBitmapIds
         /*
 		 * mdplayer=MediaPlayer.create(getApplicationContext(), R.raw.bckmusic);
@@ -158,7 +158,7 @@ class CurlActivity(var act : Activity) {
 
             b.eraseColor(-0x1)
             val c = Canvas(b)
-            val d = act.resources.getDrawable(mBitmapIds[index])
+            val d = mBitmapIds[index]
 
             val margin = 0
             val border = 0
