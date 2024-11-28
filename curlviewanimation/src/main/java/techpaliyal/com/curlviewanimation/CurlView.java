@@ -65,6 +65,9 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	private PageProvider mPageProvider;
 	private CurlMesh mPageRight;
 
+	private PageFlipListener mPageFlipListener;
+
+
 	private PointerPosition mPointerPos = new PointerPosition();
 
 	private CurlRenderer mRenderer;
@@ -134,16 +137,16 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 
 	@Override
 	public void onDrawFrame() {
-		// We are not animating.
-		if (mAnimate == false) {
+		if (!mAnimate) {
 			return;
 		}
 
 		long currentTime = System.currentTimeMillis();
-		// If animation is done.
+
+		// Check if animation is complete
 		if (currentTime >= mAnimationStartTime + mAnimationDurationTime) {
 			if (mAnimationTargetEvent == SET_CURL_TO_RIGHT) {
-				// Switch curled page to right.
+				// Switch curled page to right and notify
 				CurlMesh right = mPageCurl;
 				CurlMesh curl = mPageRight;
 				right.setRect(mRenderer.getPageRect(CurlRenderer.PAGE_RIGHT));
@@ -152,12 +155,18 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 				mRenderer.removeCurlMesh(curl);
 				mPageCurl = curl;
 				mPageRight = right;
-				// If we were curling left page update current index.
+
+				// Update index for a completed front page flip
 				if (mCurlState == CURL_LEFT) {
 					--mCurrentIndex;
 				}
+
+				// Notify listener
+				if (mPageFlipListener != null) {
+					mPageFlipListener.onPageFlippedFrontDone(mCurrentIndex);
+				}
 			} else if (mAnimationTargetEvent == SET_CURL_TO_LEFT) {
-				// Switch curled page to left.
+				// Switch curled page to left and notify
 				CurlMesh left = mPageCurl;
 				CurlMesh curl = mPageLeft;
 				left.setRect(mRenderer.getPageRect(CurlRenderer.PAGE_LEFT));
@@ -169,15 +178,23 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 				}
 				mPageCurl = curl;
 				mPageLeft = left;
-				// If we were curling right page update current index.
+
+				// Update index for a completed back page flip
 				if (mCurlState == CURL_RIGHT) {
 					++mCurrentIndex;
 				}
+
+				// Notify listener
+				if (mPageFlipListener != null) {
+					mPageFlipListener.onPageFlippedBackDone(mCurrentIndex);
+				}
 			}
+
 			mCurlState = CURL_NONE;
 			mAnimate = false;
 			requestRender();
 		} else {
+			// Animate curl position
 			mPointerPos.mPos.set(mAnimationSource);
 			float t = 1f - ((float) (currentTime - mAnimationStartTime) / mAnimationDurationTime);
 			t = 1f - (t * t * t * (3 - 2 * t));
@@ -186,6 +203,7 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 			updateCurlPos(mPointerPos);
 		}
 	}
+
 
 	@Override
 	public void onPageSizeChanged(int width, int height) {
@@ -808,5 +826,16 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 		public void onSizeChanged(int width, int height, boolean b);
 
 	}
+
+	public interface PageFlipListener {
+		void onPageFlippedFrontDone(int displayedPageIndex);
+		void onPageFlippedBackDone(int displayedPageIndex);
+	}
+
+	public void setPageFlipListener(PageFlipListener listener) {
+		this.mPageFlipListener = listener;
+	}
+
+
 
 }
